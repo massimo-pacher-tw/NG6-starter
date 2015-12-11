@@ -1,5 +1,6 @@
 class HeroController {
-  constructor() {
+  /*@ngInject*/
+  constructor($http) {
     this.name = 'hero';
   }
 }
