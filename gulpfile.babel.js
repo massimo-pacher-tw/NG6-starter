@@ -10,9 +10,11 @@ import template from 'gulp-template';
 import fs       from 'fs';
 import yargs    from 'yargs';
 import lodash   from 'lodash';
+import protractorServer from 'gulp-protractor';
 
+let protractor = protractorServer.protractor;
 let reload = () => serve.reload();
-let root = 'client';
+let root = 'src';
 
 // helper method for resolving paths
 let resolveToApp = (glob) => {
@@ -58,24 +60,42 @@ gulp.task('watch', () => {
   gulp.watch(allPaths, ['webpack', reload]);
 });
 
-gulp.task('component', () => {
-  let cap = (val) => {
-    return val.charAt(0).toUpperCase() + val.slice(1);
-  };
-  let name = yargs.argv.name;
-  let parentPath = yargs.argv.parent || '';
-  let destPath = path.join(resolveToComponents(), parentPath, name);
+'use strict';
 
-  return gulp.src(paths.blankTemplates)
-    .pipe(template({
-      name: name,
-      upCaseName: cap(name)
-    }))
-    .pipe(rename((path) => {
-      path.basename = path.basename.replace('temp', name);
-    }))
-    .pipe(gulp.dest(destPath));
+//function runProtractor (done) {
+//  var params = process.argv;
+//  var args = params.length > 3 ? [params[3], params[4]] : [];
+//
+//  gulp.src(path.join(conf.paths.e2e, '/**/*.js'))
+//      .pipe($.protractor.protractor({
+//        configFile: 'protractor.conf.js',
+//        args: args
+//      }))
+//      .on('error', function (err) {
+//        // Make sure failed tests cause gulp to exit non-zero
+//        throw err;
+//      })
+//      .on('end', function () {
+//        // Close browser sync server
+//        browserSync.exit();
+//        done();
+//      });
+//}
+
+gulp.task('protractor', () => {
+  gulp.src(["./e2e/*.spec.js"])
+      .pipe(protractor({
+        configFile: "./protractor.conf.js",
+        args: ['--baseUrl', 'http://127.0.0.1:3000']
+      }))
+      .on('error', function(e) { throw e })
+
 });
+
+//gulp.task('protractor', ['protractor:src']);
+//gulp.task('protractor:src', ['serve:e2e', 'webdriver-update'], runProtractor);
+//gulp.task('protractor:dist', ['serve:e2e-dist', 'webdriver-update'], runProtractor);
+
 
 gulp.task('default', (done) => {
   sync('webpack', 'serve', 'watch', done);
